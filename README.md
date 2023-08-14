@@ -3,4 +3,5 @@ Process images using GD Graphics Library.
 
 ## Library version
 
-* brew `2.3.3_5`
+* `libg-2.3.3_5`
+* `libavif-0.11.1`
