@@ -13,3 +13,12 @@ build manually so that freetype, fontconfig, raqm, imagequant are disabled.
 * `libjpeg`
 * `libtiff`
 * `libwebp`
+
+## Rendering options
+
+|||
+|-|-|
+|antiAlias|Boolean|
+|gammaCorrect.input|Real|
+|gammaCorrect.output|Real|
+|interpolation|Integer|
