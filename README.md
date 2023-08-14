@@ -14,17 +14,6 @@ build manually so that freetype, fontconfig, raqm, imagequant are disabled.
 * `libtiff`
 * `libwebp`
 
-## Rendering options
-
-|Property|Type|
-|-|-|
-|antiAlias|Boolean|
-|gammaCorrect.input|Real|
-|gammaCorrect.output|Real|
-|interpolation|Integer|
-|alphaBlending|Boolean|
-|saveAlpha|Boolean|
-
 ## Image format (imagefrompicture, imagetopicture)
 
 * PNG https://libgd.github.io/manuals/2.3.0/files/gd_png-c.html
