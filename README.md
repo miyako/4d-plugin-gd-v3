@@ -16,7 +16,7 @@ build manually so that freetype, fontconfig, raqm, imagequant are disabled.
 
 ## Rendering options
 
-|||
+|Property|Type|
 |-|-|
 |antiAlias|Boolean|
 |gammaCorrect.input|Real|
@@ -24,3 +24,14 @@ build manually so that freetype, fontconfig, raqm, imagequant are disabled.
 |interpolation|Integer|
 |alphaBlending|Boolean|
 |saveAlpha|Boolean|
+
+## Image format (imagefrompicture, imagetopicture)
+
+* PNG https://libgd.github.io/manuals/2.3.0/files/gd_png-c.html
+* BMP https://libgd.github.io/manuals/2.3.0/files/gd_bmp-c.html
+* GIF https://libgd.github.io/manuals/2.3.0/files/gd_gif_in-c.html
+* JPG https://libgd.github.io/manuals/2.3.0/files/gd_jpeg-c.html
+* TIFF https://libgd.github.io/manuals/2.3.0/files/gd_tiff-c.html
+* WBMP https://libgd.github.io/manuals/2.3.0/files/gd_wbmp-c.html
+* WebP https://libgd.github.io/manuals/2.3.0/files/gd_webp-c.html 
+
