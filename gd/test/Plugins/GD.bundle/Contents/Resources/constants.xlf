@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<xliff version="1.0" xmlns:d4="http://www.4d.com/d4-ns">
+    <header>
+        <note>GD</note>
+    </header>
+    <group resname="themes">
+        <trans-unit id="" resname="85AD996C58514422A807BAD507D5CB3D" translate="no">
+            <source>Image Filters</source>
+        </trans-unit>
+    </group>
+    <group restype="x-4DK#" d4:groupName="85AD996C58514422A807BAD507D5CB3D">
+        <trans-unit d4:value="1:L" id="85AD996C58514422A807BAD507D5CB3D.1">
+            <source>IMG_FILTER_NEGATE</source>
+        </trans-unit>
+        <trans-unit d4:value="2:L" id="85AD996C58514422A807BAD507D5CB3D.2">
+            <source>IMG_FILTER_GRAYSCALE</source>
+        </trans-unit>
+        <trans-unit d4:value="3:L" id="85AD996C58514422A807BAD507D5CB3D.3">
+            <source>IMG_FILTER_EDGEDETECT</source>
+        </trans-unit>
+        <trans-unit d4:value="4:L" id="85AD996C58514422A807BAD507D5CB3D.4">
+            <source>IMG_FILTER_EMBOSS</source>
+        </trans-unit>
+        <trans-unit d4:value="5:L" id="85AD996C58514422A807BAD507D5CB3D.5">
+            <source>IMG_FILTER_GAUSSIAN_BLUR</source>
+        </trans-unit>
+        <trans-unit d4:value="6:L" id="85AD996C58514422A807BAD507D5CB3D.6">
+            <source>IMG_FILTER_SELECTIVE_BLUR</source>
+        </trans-unit>
+        <trans-unit d4:value="7:L" id="85AD996C58514422A807BAD507D5CB3D.7">
+            <source>IMG_FILTER_MEAN_REMOVAL</source>
+        </trans-unit>
+        <trans-unit d4:value="8:L" id="85AD996C58514422A807BAD507D5CB3D.8">
+            <source>IMG_FILTER_SMOOTH</source>
+        </trans-unit>
+        <trans-unit d4:value="9:L" id="85AD996C58514422A807BAD507D5CB3D.9">
+            <source>IMG_FILTER_CONTRAST</source>
+        </trans-unit>
+        <trans-unit d4:value="10:L" id="85AD996C58514422A807BAD507D5CB3D.10">
+            <source>IMG_FILTER_BRIGHTNESS</source>
+        </trans-unit>
+        <trans-unit d4:value="11:L" id="85AD996C58514422A807BAD507D5CB3D.11">
+            <source>IMG_FILTER_SCATTER</source>
+        </trans-unit>
+        <trans-unit d4:value="12:L" id="85AD996C58514422A807BAD507D5CB3D.12">
+            <source>IMG_FILTER_PIXELATE</source>
+        </trans-unit>
+        <trans-unit d4:value="13:L" id="85AD996C58514422A807BAD507D5CB3D.13">
+            <source>IMG_FILTER_COLORIZE</source>
+        </trans-unit>
+    </group>
+    <group resname="themes">
+        <trans-unit id="" resname="E71FDE476C8F4C28948D30EDD427F92E" translate="no">
+            <source>Image Flip Mode</source>
+        </trans-unit>
+    </group>
+    <group restype="x-4DK#" d4:groupName="E71FDE476C8F4C28948D30EDD427F92E">
+        <trans-unit d4:value="0:L" id="E71FDE476C8F4C28948D30EDD427F92E.1">
+            <source>IMG_FLIP_HORIZONTAL</source>
+        </trans-unit>
+        <trans-unit d4:value="1:L" id="E71FDE476C8F4C28948D30EDD427F92E.2">
+            <source>IMG_FLIP_VERTICAL</source>
+        </trans-unit>
+        <trans-unit d4:value="2:L" id="E71FDE476C8F4C28948D30EDD427F92E.3">
+            <source>IMG_FLIP_BOTH</source>
+        </trans-unit>
+    </group>
+    <group resname="themes">
+        <trans-unit id="" resname="F25A7D30B3D94163B8C1FF1E81EA7B80" translate="no">
+            <source>Image Format</source>
+        </trans-unit>
+    </group>
+    <group restype="x-4DK#" d4:groupName="F25A7D30B3D94163B8C1FF1E81EA7B80">
+        <trans-unit d4:value="0:L" id="F25A7D30B3D94163B8C1FF1E81EA7B80.1">
+            <source>IMG_PNG</source>
+        </trans-unit>
+        <trans-unit d4:value="1:L" id="F25A7D30B3D94163B8C1FF1E81EA7B80.2">
+            <source>IMG_BMP</source>
+        </trans-unit>
+        <trans-unit d4:value="2:L" id="F25A7D30B3D94163B8C1FF1E81EA7B80.3">
+            <source>IMG_GIF</source>
+        </trans-unit>
+        <trans-unit d4:value="3:L" id="F25A7D30B3D94163B8C1FF1E81EA7B80.4">
+            <source>IMG_JPEG</source>
+        </trans-unit>
+        <trans-unit d4:value="4:L" id="F25A7D30B3D94163B8C1FF1E81EA7B80.5">
+            <source>IMG_TIFF</source>
+        </trans-unit>
+        <trans-unit d4:value="5:L" id="F25A7D30B3D94163B8C1FF1E81EA7B80.6">
+            <source>IMG_WBMP</source>
+        </trans-unit>
+        <trans-unit d4:value="6:L" id="F25A7D30B3D94163B8C1FF1E81EA7B80.7">
+            <source>IMG_WEBP</source>
+        </trans-unit>
+    </group>
+</xliff>
