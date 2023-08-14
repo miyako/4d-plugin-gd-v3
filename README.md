@@ -8,7 +8,7 @@ build manually so that freetype, fontconfig, raqm, imagequant are disabled.
 ## Library version
 
 * `libgd-2.3.3`
-* `libavif-0.11.1` - `libaom-3.6.1`
+* ~~`libavif-0.11.1` - `libaom-3.6.1`~~
 
 need
 
