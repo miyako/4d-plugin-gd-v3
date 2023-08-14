@@ -3,4 +3,4 @@ Process images using GD Graphics Library.
 
 ## Library version
 
-* `2.3.3_5`
+* brew `2.3.3_5`
