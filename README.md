@@ -22,3 +22,5 @@ build manually so that freetype, fontconfig, raqm, imagequant are disabled.
 |gammaCorrect.input|Real|
 |gammaCorrect.output|Real|
 |interpolation|Integer|
+|alphaBlending|Boolean|
+|saveAlpha|Boolean|
