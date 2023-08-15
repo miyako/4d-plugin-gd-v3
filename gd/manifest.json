@@ -9,49 +9,85 @@
         }, 
         {
         "theme": "GD",
-        "syntax": "imagetopicture(&P;&L):J",
+        "syntax": "imagetopicture(&P;&L;&J):J",
         "threadSafe": true
         },        
         {
-            "theme": "GD and Image Functions",
-            "syntax": "imageresolution(&P;&L;&L):L",
+            "theme": "GD Color",
+            "syntax": "imagecolorclosest(&P;&L;&L;&L):L",
             "threadSafe": true
         },
         {
-            "theme": "GD and Image Functions",
-            "syntax": "imagecolorresolve(&P;&L;&L;&L):L",
-            "threadSafe": true
-        },
-        {
-            "theme": "GD and Image Functions",
-            "syntax": "imagecolorat(&P;&L;&L):L",
-            "threadSafe": true
-        },
-        {
-            "theme": "GD and Image Functions",
-            "syntax": "imageantialias(&P;&L):J",
-            "threadSafe": true
-        },
-        {
-            "theme": "GD and Image Functions",
-            "syntax": "imagegammacorrect(&P;&8;&8):J",
+            "theme": "GD Color",
+            "syntax": "imagecolorclosestalpha(&P;&L;&L;&L;&L):L",
             "threadSafe": true
         },        
         {
-            "theme": "GD and Image Functions",
+            "theme": "GD Color",
+            "syntax": "imagecolorclosesthwb(&P;&L;&L;&L):L",
+            "threadSafe": true
+        },
+        {
+            "theme": "GD Color",
+            "syntax": "imagecolorexact(&P;&L;&L;&L):L",
+            "threadSafe": true
+        },
+        {
+            "theme": "GD Color",
+            "syntax": "imagecolorexactalpha(&P;&L;&L;&L;&L):L",
+            "threadSafe": true
+        },
+        {
+            "theme": "GD Color",
+            "syntax": "imagecolorresolve(&P;&L;&L;&L):L",
+            "threadSafe": true
+        },  
+        {
+            "theme": "GD Color",
+            "syntax": "imagecolorresolvealpha(&P;&L;&L;&L;&L):L",
+            "threadSafe": true
+        },      
+        {
+            "theme": "GD Color",
+            "syntax": "imagegetpixel(&P;&L;&L):L",
+            "threadSafe": true
+        },
+        {
+            "theme": "GD Color",
+            "syntax": "imagesetpixel(&P;&L;&L;&L;&J):J",
+            "threadSafe": true
+        },        
+        {
+            "theme": "GD Image",
+            "syntax": "imagegammacorrect(&P;&J):J",
+            "threadSafe": true
+        },        
+        {
+            "theme": "GD Image",
             "syntax": "imageflip(&P;&J):J",
             "threadSafe": true
         },
         {
-            "theme": "GD and Image Functions",
+            "theme": "GD Image",
             "syntax": "imagecrop(&P;&J):J",
             "threadSafe": true
         },
         {
-            "theme": "GD and Image Functions",
-            "syntax": "imagesetpixel(&P;&J):J",
+            "theme": "GD Image",
+            "syntax": "imagecropauto(&P;&J):J",
+            "threadSafe": true
+        },
+        {
+            "theme": "GD Image",
+            "syntax": "imagerotate(&P;&J):J",
+            "threadSafe": true
+        },
+        {
+            "theme": "GD Image",
+            "syntax": "imagefilter(&P;&J):J",
             "threadSafe": true
         }
+        
         
     ]
 }

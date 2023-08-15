@@ -76,6 +76,36 @@
             ]
         },
         {
+            "theme": "Image Crop Mode",
+            "constants": [
+                {
+                    "name": "IMG_CROP_DEFAULT",
+                    "value": "0:L"
+                },
+                {
+                    "name": "IMG_CROP_TRANSPARENT",
+                    "value": "1:L"
+                },
+                {
+                    "name": "IMG_CROP_BLACK",
+                    "value": "2:L"
+                }
+                ,
+                {
+                    "name": "IMG_CROP_WHITE",
+                    "value": "3:L"
+                },
+                {
+                    "name": "IMG_CROP_SIDES",
+                    "value": "4:L"
+                },
+                {
+                    "name": "IMG_CROP_THRESHOLD",
+                    "value": "5:L"
+                }
+            ]
+        },
+        {
             "theme": "Image Format",
             "constants": [
                 {

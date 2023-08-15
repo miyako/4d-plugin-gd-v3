@@ -26,31 +26,58 @@ void PluginMain(PA_long32 selector, PA_PluginParameters params) {
 			case 2 :
 				imagetopicture(params);
 				break;
+                
+            // --- GD Color
+                
 			case 3 :
-				imageresolution(params);
+                imagecolorclosest(params);
 				break;
-			case 4 :
-				imagecolorresolve(params);
-				break;
-			case 5 :
-				imagecolorat(params);
-				break;
-			case 6 :
-				imageantialias(params);
-				break;
-			case 7 :
-				imagegammacorrect(params);
-				break;
-			case 8 :
-				imageflip(params);
-				break;
-			case 9 :
-				imagecrop(params);
-				break;
-			case 10 :
-				imagesetpixel(params);
-				break;
-
+            case 4 :
+                imagecolorclosestalpha(params);
+                break;
+            case 5 :
+                imagecolorclosesthwb(params);
+                break;
+            case 6 :
+                imagecolorexact(params);
+                break;
+            case 7 :
+                imagecolorexactalpha(params);
+                break;
+            case 8 :
+                imagecolorresolve(params);
+                break;
+            case 9 :
+                imagecolorresolvealpha(params);
+                break;
+            case 10 :
+                imagegetpixel(params);
+                break;
+            case 11 :
+                imagesetpixel(params);
+                break;
+                
+            // --- GD Image
+                
+            case 12 :
+                imagegammacorrect(params);
+                break;
+            case 13 :
+                imageflip(params);
+                break;
+            case 14 :
+                imagecrop(params);
+                break;
+            case 15 :
+                imagecropauto(params);
+                break;
+            case 16 :
+                imagerotate(params);
+                break;
+            case 17 :
+                imagefilter(params);
+                break;
+                
         }
 
 	}
@@ -60,9 +87,9 @@ void PluginMain(PA_long32 selector, PA_PluginParameters params) {
 	}
 }
 
-#pragma mark -
+#pragma mark internal
 
-static gdImagePtr _imagetopicture(PA_Picture p) {
+static gdImagePtr _imagetopicture(PA_Picture p, const char *extension) {
     
     gdImagePtr imagePtr = NULL;
     
@@ -74,6 +101,8 @@ static gdImagePtr _imagetopicture(PA_Picture p) {
         
         PA_long32 i = 0;
         
+        std::string ext = extension;
+        
         while (err == eER_NoErr)
         {
             PA_Unistring type = PA_GetPictureData(p, ++i, NULL);
@@ -81,27 +110,25 @@ static gdImagePtr _imagetopicture(PA_Picture p) {
             
             if(err == eER_NoErr)
             {
-                PA_long32 len;
-                
-                len = (uint32_t)(type.fLength * 4) + sizeof(uint8_t);
-                std::vector<uint8_t> buf(len);
+                PA_long32 extlen = (uint32_t)(type.fLength * 4) + sizeof(uint8_t);
+                std::vector<uint8_t> buf(extlen);
                 
                 PA_ConvertCharsetToCharset(
                                            (char *)type.fString,
                                            type.fLength * sizeof(PA_Unichar),
                                            eVTC_UTF_16,
                                            (char *)&buf[0],
-                                           len,
+                                           extlen,
                                            eVTC_UTF_8
                                            );
-                CUTF8String uti;
-                uti = CUTF8String((const uint8_t *)&buf[0]);
-                CUTF8String typestring;
+                std::string uti;
+                uti = std::string((const char *)&buf[0]);
+                std::string typestring;
                 
                 size_t pos, found;
                 found = 0;
                 
-                for(pos = uti.find(';'); pos != CUTF8String::npos; pos = uti.find(';', found))
+                for(pos = uti.find(';'); pos != std::string::npos; pos = uti.find(';', found))
                 {
                     typestring = uti.substr(found, pos-found);
                     found = pos + 1;
@@ -109,7 +136,7 @@ static gdImagePtr _imagetopicture(PA_Picture p) {
                 
                 typestring = uti.substr(found, uti.length()-found);
               
-                if(CUTF8String((const uint8_t *)".gd") == typestring) {
+                if(ext == typestring) {
                     PA_GetPictureData(p, 1, h);
                     
                     if(PA_GetLastError() == eER_NoErr)
@@ -125,7 +152,7 @@ static gdImagePtr _imagetopicture(PA_Picture p) {
     return imagePtr;
 }
 
-static PA_Picture _imagetopicture(gdImagePtr imagePtr) {
+static PA_Picture _imagetopicture(gdImagePtr imagePtr, const char *extension) {
     
     PA_Picture p = NULL;
     
@@ -134,7 +161,7 @@ static PA_Picture _imagetopicture(gdImagePtr imagePtr) {
         int len = 0;
         void *bytes = NULL;
         
-        bytes = gdImageGd2Ptr(imagePtr, GD2_CHUNKSIZE_MAX, GD2_FMT_RAW, &len);
+        bytes = gdImageGd2Ptr(imagePtr, GD2_CHUNKSIZE, GD2_FMT_RAW, &len);
         
         if(bytes) {
             
@@ -142,7 +169,22 @@ static PA_Picture _imagetopicture(gdImagePtr imagePtr) {
             args[0] = PA_CreateVariable(eVK_Blob);
             args[1] = PA_CreateVariable(eVK_Picture);
             args[2] = PA_CreateVariable(eVK_Unistring);
-            PA_Unistring ustr = PA_CreateUnistring((PA_Unichar *)".\0g\0d\0\0\0");
+            
+            std::string ext = extension;
+            
+            PA_long32 extlen = (uint32_t)(ext.length() * sizeof(PA_Unichar)) + sizeof(PA_Unichar);
+            std::vector<uint8_t> buf(extlen);
+            
+            PA_ConvertCharsetToCharset(
+                                       (char *)ext.c_str(),
+                                       (PA_long32)ext.length(),
+                                       eVTC_UTF_8,
+                                       (char *)&buf[0],
+                                       extlen,
+                                       eVTC_UTF_16
+                                       );
+            
+            PA_Unistring ustr = PA_CreateUnistring((PA_Unichar *)&buf[0]);
             PA_SetStringVariable(&args[2], &ustr);
             PA_SetBlobVariable(&args[0], bytes, len);
             p = PA_CreatePicture((void *)"", 0);
@@ -162,6 +204,114 @@ static PA_Picture _imagetopicture(gdImagePtr imagePtr) {
     
     return p;
 }
+
+static PA_Picture _imagetopicture_wbmp(gdImagePtr imagePtr, const char *extension) {
+    
+    PA_Picture p = NULL;
+    
+    if(imagePtr) {
+        
+        int len = 0;
+        void *bytes = NULL;
+        
+        bytes = gdImageWBMPPtr(imagePtr, &len, 0);
+        
+        if(bytes) {
+            
+            PA_Variable args[3];
+            args[0] = PA_CreateVariable(eVK_Blob);
+            args[1] = PA_CreateVariable(eVK_Picture);
+            args[2] = PA_CreateVariable(eVK_Unistring);
+            
+            std::string ext = extension;
+            
+            PA_long32 extlen = (uint32_t)(ext.length() * sizeof(PA_Unichar)) + sizeof(PA_Unichar);
+            std::vector<uint8_t> buf(extlen);
+            
+            PA_ConvertCharsetToCharset(
+                                       (char *)ext.c_str(),
+                                       (PA_long32)ext.length(),
+                                       eVTC_UTF_8,
+                                       (char *)&buf[0],
+                                       extlen,
+                                       eVTC_UTF_16
+                                       );
+            
+            PA_Unistring ustr = PA_CreateUnistring((PA_Unichar *)&buf[0]);
+            PA_SetStringVariable(&args[2], &ustr);
+            PA_SetBlobVariable(&args[0], bytes, len);
+            p = PA_CreatePicture((void *)"", 0);
+            PA_SetPictureVariable(&args[1], p);
+
+            PA_ExecuteCommandByID(682, args, 3);
+
+            p = PA_DuplicatePicture(PA_GetPictureVariable(args[1]), 1);
+            
+            PA_ClearVariable(&args[0]);
+            PA_ClearVariable(&args[1]);
+            PA_ClearVariable(&args[2]);
+            
+            gdFree(bytes);
+        }
+    }
+    
+    return p;
+}
+
+static PA_Picture _imagetopicture_webp(gdImagePtr imagePtr, const char *extension) {
+    
+    PA_Picture p = NULL;
+    
+    if(imagePtr) {
+        
+        int len = 0;
+        void *bytes = NULL;
+        
+        bytes = gdImageWebpPtr(imagePtr, &len);
+        
+        if(bytes) {
+            
+            PA_Variable args[3];
+            args[0] = PA_CreateVariable(eVK_Blob);
+            args[1] = PA_CreateVariable(eVK_Picture);
+            args[2] = PA_CreateVariable(eVK_Unistring);
+            
+            std::string ext = extension;
+            
+            PA_long32 extlen = (uint32_t)(ext.length() * sizeof(PA_Unichar)) + sizeof(PA_Unichar);
+            std::vector<uint8_t> buf(extlen);
+            
+            PA_ConvertCharsetToCharset(
+                                       (char *)ext.c_str(),
+                                       (PA_long32)ext.length(),
+                                       eVTC_UTF_8,
+                                       (char *)&buf[0],
+                                       extlen,
+                                       eVTC_UTF_16
+                                       );
+            
+            PA_Unistring ustr = PA_CreateUnistring((PA_Unichar *)&buf[0]);
+            PA_SetStringVariable(&args[2], &ustr);
+            PA_SetBlobVariable(&args[0], bytes, len);
+            p = PA_CreatePicture((void *)"", 0);
+            PA_SetPictureVariable(&args[1], p);
+
+            PA_ExecuteCommandByID(682, args, 3);
+
+            p = PA_DuplicatePicture(PA_GetPictureVariable(args[1]), 1);
+            
+            PA_ClearVariable(&args[0]);
+            PA_ClearVariable(&args[1]);
+            PA_ClearVariable(&args[2]);
+            
+            gdFree(bytes);
+        }
+    }
+    
+    return p;
+}
+
+#pragma mark commands
 
 static void imagefrompicture(PA_PluginParameters params) {
 
@@ -218,13 +368,15 @@ static void imagefrompicture(PA_PluginParameters params) {
     }
     
     if(imagePtr) {
-       
-        PA_Picture p = _imagetopicture(imagePtr);
+
+        PA_Picture p = _imagetopicture(imagePtr, ".gd2");
         
         if(p) {
             ob_set_p(returnValue, L"image", p);
             ob_set_b(returnValue, L"success", true);
         }
+        
+        gdFree(imagePtr);
     }
     
     PA_ReturnObject(params, returnValue);
@@ -239,16 +391,76 @@ static void imagetopicture(PA_PluginParameters params) {
     PA_Picture p = PA_GetPictureParameter(params, 1);
     IMG_PNG_T format = (IMG_PNG_T)PA_GetLongParameter(params, 2);
     
-    gdImagePtr imagePtr = _imagetopicture(p);
+    gdImagePtr imagePtr = _imagetopicture(p, ".gd2");
     
     if(imagePtr) {
+        
+        PA_ObjectRef options = PA_GetObjectParameter(params, 3);
+        
+        int resolutionX = 0;
+        int resolutionY = 0;
+        int compression = -1;
+        int quality = 100;
+        int saveAlpha = 1;
+        int interlace = 0;
+        int transparent = 0;
+        int antiAliased = 0;
+        int dontBlend = 0;
+        
+        if(options) {
+
+            if(ob_is_defined(options, L"resolutionX")) {
+                resolutionX = ob_get_n(options, L"resolutionX");
+            }
+            if(ob_is_defined(options, L"resolutionY")) {
+                resolutionY = ob_get_n(options, L"resolutionY");
+            }
+            if((resolutionX > 0) && (resolutionY > 0)){
+                gdImageSetResolution(imagePtr, resolutionX, resolutionY);
+            }
+            
+            if(ob_is_defined(options, L"compression")) {
+                compression = ob_get_n(options, L"compression");
+            }
+            if(ob_is_defined(options, L"quality")) {
+                quality = ob_get_n(options, L"quality");
+            }
+            
+            if(ob_is_defined(options, L"saveAlpha")) {
+                saveAlpha = (int)ob_get_b(options, L"saveAlpha");
+                gdImageSaveAlpha(imagePtr, saveAlpha);
+            }
+
+            if(ob_is_defined(options, L"interlace")) {
+                interlace = (int)ob_get_b(options, L"interlace");
+                gdImageInterlace(imagePtr, interlace);
+            }
+            
+            if(ob_is_defined(options, L"transparent")) {
+                transparent = (int)ob_get_b(options, L"transparent");
+                gdImageColorTransparent(imagePtr, transparent);
+            }
+            
+            if(ob_is_defined(options, L"antiAliased")) {
+                antiAliased = (int)ob_get_b(options, L"antiAliased");
+                if(ob_is_defined(options, L"dontBlend")) {
+                    dontBlend = (int)ob_get_b(options, L"dontBlend");
+                    gdImageSetAntiAliasedDontBlend(imagePtr, antiAliased, dontBlend);
+                }else{
+                    gdImageSetAntiAliased(imagePtr, antiAliased);
+                }
+            }
+            
+            
+            
+        }
         
         int len = 0;
         void *bytes = NULL;
        
         switch (format) {
             case IMG_BMP:
-                bytes = gdImageBmpPtr(imagePtr, &len, -1);
+                bytes = gdImageBmpPtr(imagePtr, &len, compression);
                 if(bytes) {
                     ob_set_p(returnValue, L"image", PA_CreatePicture(bytes, len));
                     ob_set_b(returnValue, L"success", true);
@@ -264,7 +476,7 @@ static void imagetopicture(PA_PluginParameters params) {
                 }
                 break;
             case IMG_JPEG:
-                bytes = gdImageJpegPtr(imagePtr, &len, 100);
+                bytes = gdImageJpegPtr(imagePtr, &len, quality);
                 if(bytes) {
                     ob_set_p(returnValue, L"image", PA_CreatePicture(bytes, len));
                     ob_set_b(returnValue, L"success", true);
@@ -279,24 +491,14 @@ static void imagetopicture(PA_PluginParameters params) {
                     gdFree(bytes);
                 }
                 break;
-                /*
             case IMG_WBMP:
-                bytes = gdImageWBMPPtr(imagePtr, &len, 0);
-                if(bytes) {
-                    ob_set_p(returnValue, L"image", PA_CreatePicture(bytes, len));
-                    ob_set_b(returnValue, L"success", true);
-                    gdFree(bytes);
-                }
+                ob_set_p(returnValue, L"image", _imagetopicture_wbmp(imagePtr, ".wbmp"));
+                ob_set_b(returnValue, L"success", true);
                 break;
             case IMG_WEBP:
-                bytes = gdImageWebpPtr(imagePtr, &len);
-                if(bytes) {
-                    ob_set_p(returnValue, L"image", PA_CreatePicture(bytes, len));
-                    ob_set_b(returnValue, L"success", true);
-                    gdFree(bytes);
-                }
+                ob_set_p(returnValue, L"image", _imagetopicture_webp(imagePtr, ".webp"));
+                ob_set_b(returnValue, L"success", true);
                 break;
-                 */
             case IMG_PNG:
             default:
                 bytes = gdImagePngPtr(imagePtr, &len);
@@ -307,40 +509,750 @@ static void imagetopicture(PA_PluginParameters params) {
                 }
                 break;
         }
+    
+        gdFree(imagePtr);
     }
  
     PA_ReturnObject(params, returnValue);
 }
 
-void imageresolution(PA_PluginParameters params) {
+void imagecolorclosest(PA_PluginParameters params) {
+    
+    PA_long32 returnValue = -1;
+    
+    PA_Picture p = PA_GetPictureParameter(params, 1);
+    
+    gdImagePtr imagePtr = _imagetopicture(p, ".gd2");
+    
+    if(imagePtr) {
+        
+        int r = (int)PA_GetLongParameter(params, 2);
+        int g = (int)PA_GetLongParameter(params, 3);
+        int b = (int)PA_GetLongParameter(params, 4);
+        
+        returnValue = gdImageColorClosest(imagePtr, r, g, b);
+        
+        gdFree(imagePtr);
+    }
+    
+    PA_ReturnLong(params, returnValue);
+}
 
+void imagecolorclosestalpha(PA_PluginParameters params) {
+    
+    PA_long32 returnValue = -1;
+    
+    PA_Picture p = PA_GetPictureParameter(params, 1);
+    
+    gdImagePtr imagePtr = _imagetopicture(p, ".gd2");
+    
+    if(imagePtr) {
+        
+        int r = (int)PA_GetLongParameter(params, 2);
+        int g = (int)PA_GetLongParameter(params, 3);
+        int b = (int)PA_GetLongParameter(params, 4);
+        int a = (int)PA_GetLongParameter(params, 5);
+        
+        returnValue = gdImageColorClosestAlpha(imagePtr, r, g, b, a);
+        
+        gdFree(imagePtr);
+    }
+    
+    PA_ReturnLong(params, returnValue);
+}
+
+void imagecolorclosesthwb(PA_PluginParameters params) {
+    
+    PA_long32 returnValue = -1;
+    
+    PA_Picture p = PA_GetPictureParameter(params, 1);
+    
+    gdImagePtr imagePtr = _imagetopicture(p, ".gd2");
+    
+    if(imagePtr) {
+        
+        int r = (int)PA_GetLongParameter(params, 2);
+        int g = (int)PA_GetLongParameter(params, 3);
+        int b = (int)PA_GetLongParameter(params, 4);
+        
+        returnValue = gdImageColorClosestHWB(imagePtr, r, g, b);
+        
+        gdFree(imagePtr);
+    }
+    
+    PA_ReturnLong(params, returnValue);
+}
+
+void imagecolorexact(PA_PluginParameters params) {
+    
+    PA_long32 returnValue = -1;
+    
+    PA_Picture p = PA_GetPictureParameter(params, 1);
+    
+    gdImagePtr imagePtr = _imagetopicture(p, ".gd2");
+    
+    if(imagePtr) {
+        
+        int r = (int)PA_GetLongParameter(params, 2);
+        int g = (int)PA_GetLongParameter(params, 3);
+        int b = (int)PA_GetLongParameter(params, 4);
+        
+        returnValue = gdImageColorExact(imagePtr, r, g, b);
+        
+        gdFree(imagePtr);
+    }
+    
+    PA_ReturnLong(params, returnValue);
+}
+
+void imagecolorexactalpha(PA_PluginParameters params) {
+    
+    PA_long32 returnValue = -1;
+    
+    PA_Picture p = PA_GetPictureParameter(params, 1);
+    
+    gdImagePtr imagePtr = _imagetopicture(p, ".gd2");
+    
+    if(imagePtr) {
+        
+        int r = (int)PA_GetLongParameter(params, 2);
+        int g = (int)PA_GetLongParameter(params, 3);
+        int b = (int)PA_GetLongParameter(params, 4);
+        int a = (int)PA_GetLongParameter(params, 5);
+        
+        returnValue = gdImageColorExactAlpha(imagePtr, r, g, b, a);
+        
+        gdFree(imagePtr);
+    }
+    
+    PA_ReturnLong(params, returnValue);
 }
 
 void imagecolorresolve(PA_PluginParameters params) {
-
+    
+    PA_long32 returnValue = -1;
+    
+    PA_Picture p = PA_GetPictureParameter(params, 1);
+    
+    gdImagePtr imagePtr = _imagetopicture(p, ".gd2");
+    
+    if(imagePtr) {
+        
+        int r = (int)PA_GetLongParameter(params, 2);
+        int g = (int)PA_GetLongParameter(params, 3);
+        int b = (int)PA_GetLongParameter(params, 4);
+        
+        returnValue = gdImageColorResolve(imagePtr, r, g, b);
+        
+        gdFree(imagePtr);
+    }
+    
+    PA_ReturnLong(params, returnValue);
 }
 
-void imagecolorat(PA_PluginParameters params) {
-
+void imagecolorresolvealpha(PA_PluginParameters params) {
+    
+    PA_long32 returnValue = -1;
+    
+    PA_Picture p = PA_GetPictureParameter(params, 1);
+    
+    gdImagePtr imagePtr = _imagetopicture(p, ".gd2");
+    
+    if(imagePtr) {
+        
+        int r = (int)PA_GetLongParameter(params, 2);
+        int g = (int)PA_GetLongParameter(params, 3);
+        int b = (int)PA_GetLongParameter(params, 4);
+        int a = (int)PA_GetLongParameter(params, 5);
+        
+        returnValue = gdImageColorResolveAlpha(imagePtr, r, g, b, a);
+        
+        gdFree(imagePtr);
+    }
+    
+    PA_ReturnLong(params, returnValue);
 }
 
-void imageantialias(PA_PluginParameters params) {
-
-}
-
-void imagegammacorrect(PA_PluginParameters params) {
-
-}
-
-void imageflip(PA_PluginParameters params) {
-
-}
-
-void imagecrop(PA_PluginParameters params) {
-
+void imagegetpixel(PA_PluginParameters params) {
+    
+    PA_long32 returnValue = -1;
+    
+    PA_Picture p = PA_GetPictureParameter(params, 1);
+    
+    gdImagePtr imagePtr = _imagetopicture(p, ".gd2");
+    
+    if(imagePtr) {
+        
+        int x = (int)PA_GetLongParameter(params, 2);
+        int y = (int)PA_GetLongParameter(params, 3);
+        
+        if (gdImageTrueColor(imagePtr)) {
+            if (imagePtr->tpixels && gdImageBoundsSafe(imagePtr, x, y)) {
+                returnValue = gdImageTrueColorPixel(imagePtr, x, y);
+            }
+        } else {
+            if (imagePtr->pixels && gdImageBoundsSafe(imagePtr, x, y)) {
+                returnValue = gdImageGetPixel(imagePtr, x, y);
+            }
+        }
+        
+        gdFree(imagePtr);
+    }
+    
+    PA_ReturnLong(params, returnValue);
 }
 
 void imagesetpixel(PA_PluginParameters params) {
-
+    
+    PA_ObjectRef returnValue = PA_CreateObject();
+    
+    ob_set_b(returnValue, L"success", false);
+    
+    PA_Picture p = PA_GetPictureParameter(params, 1);
+    
+    gdImagePtr imagePtr = _imagetopicture(p, ".gd2");
+    
+    if(imagePtr) {
+        
+        int x = (int)PA_GetLongParameter(params, 2);
+        int y = (int)PA_GetLongParameter(params, 3);
+        int col = (int)PA_GetLongParameter(params, 4);
+        PA_ObjectRef options = PA_GetObjectParameter(params, 5);
+        
+        bool alphaBlending = false;
+        
+        if(options) {
+            
+            if(ob_is_defined(options, L"alphaBlending")) {
+                alphaBlending = ob_get_b(options, L"alphaBlending");
+                gdImageAlphaBlending(imagePtr, (int)alphaBlending);
+            }
+        }
+        
+        gdImageSetPixel(imagePtr, x, y, col);
+        
+        PA_Picture p = _imagetopicture(imagePtr, ".gd2");
+        
+        if(p) {
+            ob_set_p(returnValue, L"image", p);
+            ob_set_b(returnValue, L"success", true);
+        }
+        
+        gdFree(imagePtr);
+    }
+    
+    PA_ReturnObject(params, returnValue);
 }
 
+void imagegammacorrect(PA_PluginParameters params) {
+    
+    PA_ObjectRef returnValue = PA_CreateObject();
+    
+    ob_set_b(returnValue, L"success", false);
+    
+    PA_Picture p = PA_GetPictureParameter(params, 1);
+    
+    gdImagePtr imagePtr = _imagetopicture(p, ".gd2");
+    
+    if(imagePtr) {
+
+        if (gdImageTrueColor(imagePtr)) {
+            
+            PA_ObjectRef options = PA_GetObjectParameter(params, 2);
+                    
+            double inputGamma = 0.0;
+            double outputGamma = 0.0;
+            
+            if(options) {
+                
+                if(ob_is_defined(options, L"inputGamma")) {
+                    inputGamma = ob_get_n(options, L"inputGamma");
+                    
+                }
+                if(ob_is_defined(options, L"outputGamma")) {
+                    outputGamma = ob_get_n(options, L"outputGamma");
+                }
+                if ((inputGamma > 0.0) && (outputGamma > 0.0)) {
+                    double gamma = inputGamma / outputGamma;
+                    int x, y, c;
+                    
+                    for (y = 0; y < gdImageSY(imagePtr); y++)    {
+                        for (x = 0; x < gdImageSX(imagePtr); x++)    {
+                            c = gdImageGetPixel(imagePtr, x, y);
+                            gdImageSetPixel(imagePtr, x, y,
+                            gdTrueColorAlpha(
+                             (int) ((pow((gdTrueColorGetRed(c)   / 255.0), gamma) * 255) + .5),
+                             (int) ((pow((gdTrueColorGetGreen(c) / 255.0), gamma) * 255) + .5),
+                             (int) ((pow((gdTrueColorGetBlue(c)  / 255.0), gamma) * 255) + .5),
+                             gdTrueColorGetAlpha(c)
+                             )
+                            );
+                        }
+                    }
+                    
+                    PA_Picture p = _imagetopicture(imagePtr, ".gd2");
+                    
+                    if(p) {
+                        ob_set_p(returnValue, L"image", p);
+                        ob_set_b(returnValue, L"success", true);
+                    }
+                }
+            }
+
+        }
+        
+        gdFree(imagePtr);
+    }
+    
+    PA_ReturnObject(params, returnValue);
+}
+
+void imageflip(PA_PluginParameters params) {
+    
+    PA_ObjectRef returnValue = PA_CreateObject();
+    
+    ob_set_b(returnValue, L"success", false);
+    
+    PA_Picture p = PA_GetPictureParameter(params, 1);
+    
+    gdImagePtr imagePtr = _imagetopicture(p, ".gd2");
+    
+    if(imagePtr) {
+
+        if (gdImageTrueColor(imagePtr)) {
+            
+            PA_ObjectRef options = PA_GetObjectParameter(params, 2);
+                    
+            IMG_FLIP_T flipMode = IMG_FLIP_HORIZONTAL;
+            
+            if(options) {
+                
+                if(ob_is_defined(options, L"flipMode")) {
+                    
+                    flipMode = (IMG_FLIP_T)ob_get_n(options, L"flipMode");
+                    
+                    switch (flipMode) {
+                        case IMG_FLIP_VERTICAL:
+                            gdImageFlipVertical(imagePtr);
+                            break;
+                        case IMG_FLIP_HORIZONTAL:
+                            gdImageFlipHorizontal(imagePtr);
+                            break;
+                        case IMG_FLIP_BOTH:
+                            gdImageFlipBoth(imagePtr);
+                            break;
+                    }
+                    
+                    PA_Picture p = _imagetopicture(imagePtr, ".gd2");
+                    
+                    if(p) {
+                        ob_set_p(returnValue, L"image", p);
+                        ob_set_b(returnValue, L"success", true);
+                    }
+                }
+            }
+        }
+        
+        gdFree(imagePtr);
+    }
+    
+    PA_ReturnObject(params, returnValue);
+}
+
+void imagecrop(PA_PluginParameters params) {
+    
+    PA_ObjectRef returnValue = PA_CreateObject();
+    
+    ob_set_b(returnValue, L"success", false);
+    
+    PA_Picture p = PA_GetPictureParameter(params, 1);
+    
+    gdImagePtr imagePtr = _imagetopicture(p, ".gd2");
+    
+    if(imagePtr) {
+
+        if (gdImageTrueColor(imagePtr)) {
+            
+            PA_ObjectRef options = PA_GetObjectParameter(params, 2);
+                                
+            gdRect rect;
+
+            if(options) {
+                
+                if(ob_is_defined(options, L"x")) {
+                    rect.x = ob_get_n(options, L"x");
+                }
+                if(ob_is_defined(options, L"y")) {
+                    rect.y = ob_get_n(options, L"y");
+                }
+                if(ob_is_defined(options, L"width")) {
+                    rect.width = ob_get_n(options, L"width");
+                }
+                if(ob_is_defined(options, L"height")) {
+                    rect.height = ob_get_n(options, L"height");
+                }
+                                                                        
+                gdImagePtr imagePtr2 = gdImageCrop(imagePtr, &rect);
+                
+                if(imagePtr2) {
+                    
+                    PA_Picture p = _imagetopicture(imagePtr2, ".gd2");
+                    
+                    if(p) {
+                        ob_set_p(returnValue, L"image", p);
+                        ob_set_b(returnValue, L"success", true);
+                    }
+                    
+                    gdFree(imagePtr2);
+                }
+            }
+        }
+        
+        gdFree(imagePtr);
+    }
+    
+    PA_ReturnObject(params, returnValue);
+}
+
+void imagecropauto(PA_PluginParameters params) {
+    
+    PA_ObjectRef returnValue = PA_CreateObject();
+    
+    ob_set_b(returnValue, L"success", false);
+    
+    PA_Picture p = PA_GetPictureParameter(params, 1);
+    
+    gdImagePtr imagePtr = _imagetopicture(p, ".gd2");
+    
+    if(imagePtr) {
+
+        if (gdImageTrueColor(imagePtr)) {
+            
+            PA_ObjectRef options = PA_GetObjectParameter(params, 2);
+                                
+            int mode = GD_CROP_DEFAULT;
+            float threshold = 0.5f;
+            int color = -1;
+            
+            if(options) {
+                
+                if(ob_is_defined(options, L"mode")) {
+                    mode = (int)ob_get_n(options, L"mode");
+                }
+                if(ob_is_defined(options, L"threshold")) {
+                    threshold =(float)ob_get_n(options, L"threshold");
+                }
+                if(ob_is_defined(options, L"color")) {
+                    color = ob_get_n(options, L"color");
+                }
+         
+                gdImagePtr imagePtr2 = NULL;
+                
+                switch (mode) {
+                        case GD_CROP_DEFAULT:
+                        case GD_CROP_TRANSPARENT:
+                        case GD_CROP_BLACK:
+                        case GD_CROP_WHITE:
+                        case GD_CROP_SIDES:
+                        imagePtr2 = gdImageCropAuto(imagePtr, mode);
+                            break;
+
+                        case GD_CROP_THRESHOLD:
+                            if (color < 0 || (!gdImageTrueColor(imagePtr) && color >= gdImageColorsTotal(imagePtr))) {
+ 
+                            }else{
+                                imagePtr2 = gdImageCropThreshold(imagePtr, color, threshold);
+                            }
+                            break;
+
+                    }
+                
+                if(imagePtr2) {
+                    
+                    PA_Picture p = _imagetopicture(imagePtr2, ".gd2");
+                    
+                    if(p) {
+                        ob_set_p(returnValue, L"image", p);
+                        ob_set_b(returnValue, L"success", true);
+                    }
+                    
+                    gdFree(imagePtr2);
+                }
+            }
+        }
+        
+        gdFree(imagePtr);
+    }
+    
+    PA_ReturnObject(params, returnValue);
+}
+
+void imagerotate(PA_PluginParameters params) {
+    
+    PA_ObjectRef returnValue = PA_CreateObject();
+    
+    ob_set_b(returnValue, L"success", false);
+    
+    PA_Picture p = PA_GetPictureParameter(params, 1);
+    
+    gdImagePtr imagePtr = _imagetopicture(p, ".gd2");
+    
+    if(imagePtr) {
+
+        if (gdImageTrueColor(imagePtr)) {
+            
+            PA_ObjectRef options = PA_GetObjectParameter(params, 2);
+                                
+            float degrees = 0.0f;
+            int color = 0;
+            
+            if(options) {
+                
+                if(ob_is_defined(options, L"degrees")) {
+                    degrees = (float)ob_get_n(options, L"degrees");
+                }
+                if(ob_is_defined(options, L"color")) {
+                    color = ob_get_n(options, L"color");
+                }
+         
+                gdImagePtr imagePtr2 = NULL;
+                
+                imagePtr2 = gdImageRotateInterpolated(imagePtr, degrees, color);
+
+
+                if(imagePtr2) {
+                    
+                    PA_Picture p = _imagetopicture(imagePtr2, ".gd2");
+                    
+                    if(p) {
+                        ob_set_p(returnValue, L"image", p);
+                        ob_set_b(returnValue, L"success", true);
+                    }
+                    
+                    gdFree(imagePtr2);
+                }
+            }
+        }
+        
+        gdFree(imagePtr);
+    }
+    
+    PA_ReturnObject(params, returnValue);
+}
+
+void imagefilter(PA_PluginParameters params) {
+    
+    PA_ObjectRef returnValue = PA_CreateObject();
+    
+    ob_set_b(returnValue, L"success", false);
+    
+    PA_Picture p = PA_GetPictureParameter(params, 1);
+    
+    gdImagePtr imagePtr = _imagetopicture(p, ".gd2");
+    
+    if(imagePtr) {
+
+        if (gdImageTrueColor(imagePtr)) {
+            
+            PA_ObjectRef options = PA_GetObjectParameter(params, 2);
+                                
+            IMG_FILTER_T filter_type = IMG_FILTER_NONE;
+            float weight = 0.0f;
+            double contrast = 0.0f;
+            int brightness = 0L;
+            int sub = 0L;
+            int plus = 0L;
+            int size = 0L;
+            unsigned int mode = 0L;
+            int red = 0L;
+            int green = 0L;
+            int blue = 0L;
+            int alpha = 0L;
+            float div = 0L;
+            float offset = 0L;
+            int radius = 0L;
+            double sigma = 0.0f;
+            float filter[3][3] = {
+                {0.0f, 0.0f, 0.0f},
+                {0.0f, 0.0f, 0.0f},
+                {0.0f, 0.0f, 0.0f}
+            };
+            
+            if(options) {
+                
+                if(ob_is_defined(options, L"filter")) {
+                    filter_type = (IMG_FILTER_T)ob_get_n(options, L"filter");
+                    radius = (int)ob_get_n(options, L"radius");
+                    sigma = (double)ob_get_n(options, L"sigma");
+                    weight = (float)ob_get_n(options, L"weight");
+                    contrast = (double)ob_get_n(options, L"contrast");
+                    brightness = (int)ob_get_n(options, L"brightness");
+                    sub = (int)ob_get_n(options, L"sub");
+                    plus = (int)ob_get_n(options, L"plus");
+                    size = (int)ob_get_n(options, L"size");
+                    mode = (unsigned int)ob_get_n(options, L"mode");
+                    red = (int)ob_get_n(options, L"red");
+                    green = (int)ob_get_n(options, L"green");
+                    blue = (int)ob_get_n(options, L"blue");
+                    alpha = (int)ob_get_n(options, L"alpha");
+                    div = (float)ob_get_n(options, L"div");
+                    offset = (float)ob_get_n(options, L"offset");
+                    
+                    if(ob_is_defined(options, L"matrix")) {
+                        PA_CollectionRef m = ob_get_c(options, L"matrix");
+                        if(m) {
+                            if(3 == PA_GetCollectionLength(m)) {
+                                
+                                PA_Variable v0 = PA_GetCollectionElement(m, 0);
+                                if(PA_GetVariableKind(v0) == eVK_Collection) {
+                                    PA_CollectionRef m0 = PA_GetCollectionVariable(v0);
+                                    if(3 == PA_GetCollectionLength(m0)) {
+                                        PA_Variable e0 = PA_GetCollectionElement(m0, 0);
+                                        PA_Variable e1 = PA_GetCollectionElement(m0, 1);
+                                        PA_Variable e2 = PA_GetCollectionElement(m0, 2);
+                                        if(PA_GetVariableKind(e0) == eVK_Real) {
+                                            filter[0][0] = PA_GetRealVariable(e0);
+                                        }
+                                        if(PA_GetVariableKind(e1) == eVK_Real) {
+                                            filter[0][1] = PA_GetRealVariable(e1);
+                                        }
+                                        if(PA_GetVariableKind(e2) == eVK_Real) {
+                                            filter[0][2] = PA_GetRealVariable(e2);
+                                        }
+                                    }
+                                }
+                                
+                                PA_Variable v1 = PA_GetCollectionElement(m, 1);
+                                if(PA_GetVariableKind(v1) == eVK_Collection) {
+                                    PA_CollectionRef m0 = PA_GetCollectionVariable(v1);
+                                    if(3 == PA_GetCollectionLength(m0)) {
+                                        PA_Variable e0 = PA_GetCollectionElement(m0, 0);
+                                        PA_Variable e1 = PA_GetCollectionElement(m0, 1);
+                                        PA_Variable e2 = PA_GetCollectionElement(m0, 2);
+                                        if(PA_GetVariableKind(e0) == eVK_Real) {
+                                            filter[1][0] = PA_GetRealVariable(e0);
+                                        }
+                                        if(PA_GetVariableKind(e1) == eVK_Real) {
+                                            filter[1][1] = PA_GetRealVariable(e1);
+                                        }
+                                        if(PA_GetVariableKind(e2) == eVK_Real) {
+                                            filter[1][2] = PA_GetRealVariable(e2);
+                                        }
+                                    }
+                                }
+
+                                PA_Variable v2 = PA_GetCollectionElement(m, 2);
+                                if(PA_GetVariableKind(v2) == eVK_Collection) {
+                                    PA_CollectionRef m0 = PA_GetCollectionVariable(v2);
+                                    if(3 == PA_GetCollectionLength(m0)) {
+                                        PA_Variable e0 = PA_GetCollectionElement(m0, 0);
+                                        PA_Variable e1 = PA_GetCollectionElement(m0, 1);
+                                        PA_Variable e2 = PA_GetCollectionElement(m0, 2);
+                                        if(PA_GetVariableKind(e0) == eVK_Real) {
+                                            filter[2][0] = PA_GetRealVariable(e0);
+                                        }
+                                        if(PA_GetVariableKind(e1) == eVK_Real) {
+                                            filter[2][1] = PA_GetRealVariable(e1);
+                                        }
+                                        if(PA_GetVariableKind(e2) == eVK_Real) {
+                                            filter[2][2] = PA_GetRealVariable(e2);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    int success = 0;
+                    gdImagePtr imagePtr2 = NULL;
+                    
+                    switch (filter_type) {
+                        case IMG_FILTER_NEGATE:
+                            success = gdImageNegate(imagePtr);
+                            break;
+                            
+                        case IMG_FILTER_GRAYSCALE:
+                            success = gdImageGrayScale(imagePtr);
+                            break;
+                    
+                        case IMG_FILTER_EDGEDETECT:
+                            success = gdImageEdgeDetectQuick(imagePtr);
+                            break;
+                            
+                        case IMG_FILTER_EMBOSS:
+                            success = gdImageEmboss(imagePtr);
+                            break;
+
+                        case IMG_FILTER_SELECTIVE_BLUR:
+                            success = gdImageSelectiveBlur(imagePtr);
+                            break;
+                            
+                        case IMG_FILTER_GAUSSIAN_BLUR:
+                            imagePtr2 = gdImageCopyGaussianBlurred(imagePtr, radius, sigma);
+                            break;
+                        
+                        case IMG_FILTER_MEAN_REMOVAL:
+                            success = gdImageMeanRemoval(imagePtr);
+                            break;
+                            
+                        case IMG_FILTER_SMOOTH:
+                            success = gdImageSmooth(imagePtr, weight);
+                            break;
+                        
+                        case IMG_FILTER_CONTRAST:
+                            success = gdImageContrast(imagePtr, contrast);
+                            break;
+                            
+                        case IMG_FILTER_BRIGHTNESS:
+                            success = gdImageBrightness(imagePtr, brightness);
+                            break;
+                            
+                        case IMG_FILTER_SCATTER:
+                            success = gdImageScatter(imagePtr, sub, plus);
+                            break;
+                            
+                        case IMG_FILTER_PIXELATE:
+                            success = gdImagePixelate(imagePtr, size, mode);
+                            break;
+                            
+                        case IMG_FILTER_COLORIZE:
+                            success = gdImageColor(imagePtr, red, green, blue, alpha);
+                        break;
+                            
+                            case IMG_FILTER_CONVOLUTION:
+                            success = gdImageConvolution(imagePtr, filter, div, offset);
+                            break;
+                            
+                        default:
+                            break;
+                    }
+                    
+                    if(success) {
+                        PA_Picture p = _imagetopicture(imagePtr, ".gd2");
+                        
+                        if(p) {
+                            ob_set_p(returnValue, L"image", p);
+                            ob_set_b(returnValue, L"success", true);
+                        }
+                    }else{
+                        if(imagePtr2) {
+                            
+                            PA_Picture p = _imagetopicture(imagePtr2, ".gd2");
+                            
+                            if(p) {
+                                ob_set_p(returnValue, L"image", p);
+                                ob_set_b(returnValue, L"success", true);
+                            }
+                            
+                            gdFree(imagePtr2);
+                        }
+                    }
+                }
+            }
+        }
+        
+        gdFree(imagePtr);
+    }
+    
+    PA_ReturnObject(params, returnValue);
+}

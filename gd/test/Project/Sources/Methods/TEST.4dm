@@ -24,7 +24,8 @@ If ($GD.success)
 	
 	$WEBP:=imagetopicture($GD.image; IMG_WEBP)
 	If ($WEBP.success)
-		WRITE PICTURE FILE:C680(System folder:C487(Desktop:K41:16)+"1.webp"; $WEBP.image)
+		PICTURE TO BLOB:C692($WEBP.image; $data; ".webp")
+		BLOB TO DOCUMENT:C526(System folder:C487(Desktop:K41:16)+"1.webp"; $data)
 	End if 
 	
 	$TIFF:=imagetopicture($GD.image; IMG_TIFF)
@@ -39,7 +40,8 @@ If ($GD.success)
 	
 	$WBMP:=imagetopicture($GD.image; IMG_WBMP)
 	If ($WBMP.success)
-		WRITE PICTURE FILE:C680(System folder:C487(Desktop:K41:16)+"1.wbmp"; $WBMP.image)
+		PICTURE TO BLOB:C692($WBMP.image; $data; ".wbmp")
+		BLOB TO DOCUMENT:C526(System folder:C487(Desktop:K41:16)+"1.wbmp"; $data)
 	End if 
 	
 End if 
