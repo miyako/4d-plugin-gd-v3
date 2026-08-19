@@ -9,8 +9,28 @@
  # --------------------------------------------------------------------------------*/
 
 #include "4DPlugin-GD.h"
+#include <cmath>
 
 #pragma mark -
+
+// Validates a caller-supplied double (from ob_get_n) before it is narrowed to an
+// integer type and used to size an allocation or bound a loop inside GD. Rejects
+// non-finite values and clamps to [lo, hi] rather than letting an out-of-range or
+// NaN/Inf double hit an unsigned/int cast, which is undefined behavior in C++ and,
+// left unclamped, a real slowness/DoS vector against gdImagePixelate /
+// gdImageCopyGaussianBlurred.
+static int _safe_int_option(double v, int lo, int hi, int fallback) {
+    if(!std::isfinite(v)) {
+        return fallback;
+    }
+    if(v < (double)lo) {
+        return lo;
+    }
+    if(v > (double)hi) {
+        return hi;
+    }
+    return (int)v;
+}
 
 void PluginMain(PA_long32 selector, PA_PluginParameters params) {
     
@@ -147,6 +167,8 @@ static gdImagePtr _imagetopicture(PA_Picture p, const char *extension) {
                 }
             }
         }
+        
+        PA_DisposeHandle(h);
     }
     
     return imagePtr;
@@ -365,6 +387,8 @@ static void imagefrompicture(PA_PluginParameters params) {
                     break;
             }
         }
+        
+        PA_DisposeHandle(h);
     }
     
     if(imagePtr) {
@@ -876,6 +900,10 @@ void imagecrop(PA_PluginParameters params) {
             PA_ObjectRef options = PA_GetObjectParameter(params, 2);
                                 
             gdRect rect;
+            rect.x = 0;
+            rect.y = 0;
+            rect.width = gdImageSX(imagePtr);
+            rect.height = gdImageSY(imagePtr);
 
             if(options) {
                 
@@ -1082,15 +1110,20 @@ void imagefilter(PA_PluginParameters params) {
                 
                 if(ob_is_defined(options, L"filter")) {
                     filter_type = (IMG_FILTER_T)ob_get_n(options, L"filter");
-                    radius = (int)ob_get_n(options, L"radius");
+                    // radius/sigma feed gdImageCopyGaussianBlurred; size/mode feed
+                    // gdImagePixelate. All four were previously cast straight from an
+                    // unvalidated double, which is undefined behavior for out-of-range/
+                    // NaN/Inf input and, unclamped, lets a caller drive GD into a huge
+                    // allocation or loop bound. Clamp to generous-but-bounded ranges.
+                    radius = _safe_int_option(ob_get_n(options, L"radius"), -1, 4096, -1);
                     sigma = (double)ob_get_n(options, L"sigma");
                     weight = (float)ob_get_n(options, L"weight");
                     contrast = (double)ob_get_n(options, L"contrast");
                     brightness = (int)ob_get_n(options, L"brightness");
                     sub = (int)ob_get_n(options, L"sub");
                     plus = (int)ob_get_n(options, L"plus");
-                    size = (int)ob_get_n(options, L"size");
-                    mode = (unsigned int)ob_get_n(options, L"mode");
+                    size = _safe_int_option(ob_get_n(options, L"size"), 1, 4096, 1);
+                    mode = (unsigned int)_safe_int_option(ob_get_n(options, L"mode"), 0, 1, 0);
                     red = (int)ob_get_n(options, L"red");
                     green = (int)ob_get_n(options, L"green");
                     blue = (int)ob_get_n(options, L"blue");
