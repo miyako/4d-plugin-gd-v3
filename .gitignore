@@ -1,3 +1,4 @@
 gd/test/userPreferences.*
 gd/build/*
 test/Project/DerivedData/*
+build/*
